@@ -24,9 +24,10 @@ int SHAPE = 0;
 int RECT_CYCLE = 0;
 double RMS = 0;
 double AVG = 0;
+int RECT_SIGN = 1;
 // Set time interval and samples per second
 double TIM_INTV = 0.00001; // in second
-int SAMPLES_PER_S = 100000;  // samples per second
+long int SAMPLES_PER_S = 100000;  // samples per second
 #define ARR_SIZE 1000
 double arr_table[ARR_SIZE] = {0.0};
 int indx = 0;
@@ -36,7 +37,8 @@ void timer_isr();
 void idle_generator();
 void swi_call();
 void calculate_samples(double omega, double delta_time);
-
+double calculate_triangle();
+double calculate_rect(double omega);
 /*
  *  ======== main ========
  */
@@ -52,9 +54,12 @@ Int main()
 }
 
 void timer_isr() {
-    AMPLITUDE = gui.control.amp;
-    FREQUENCY = gui.control.freq;
-    SHAPE = gui.control.shape;
+    if (indx == 0) {
+        RECT_SIGN = 1;
+        AMPLITUDE = gui.control.amp;
+        FREQUENCY = gui.control.freq;
+        SHAPE = gui.control.shape;
+    }
     if (indx == ARR_SIZE) {
         Swi_post(SwiGen);
         indx++;
@@ -67,27 +72,44 @@ void timer_isr() {
         indx = 0;
     }
 }
-
+// https://www.exstrom.com/siggen/prog/square.c
+// https://en.wikipedia.org/wiki/Triangle_wave
 void calculate_samples(double omega, double delta_time) {
-    // https://math.stackexchange.com/questions/1578241/ways-to-generate-triangle-wave-function
     switch (SHAPE) {
         case 0:
             arr_table[indx] = sin(omega * indx * delta_time) * AMPLITUDE;
             break;
         case 1:
-            arr_table[indx] = asin(cos(omega * indx * delta_time)) * AMPLITUDE;
+            arr_table[indx] = asin(sin(omega * indx * delta_time)) * AMPLITUDE * (2 / M_PI);
             break;
         case 2: {
-            double dc = (1 / FREQUENCY) / 6;
-            double time = (indx * TIM_INTV);
-            int cycle_cnt = (int) time / dc;
-            double time_passed = time - (cycle_cnt * 2 * TIM_INTV);
-            arr_table[indx] = time_passed < dc ? 0 : AMPLITUDE;
+            arr_table[indx] = calculate_rect(omega) * -AMPLITUDE;
             break;
         }
     }
     //gui.indicator.graph = arr_table[indx];
     indx++;
+}
+
+double calculate_triangle() {
+    unsigned long int m = SAMPLES_PER_S /(2.0* FREQUENCY);
+    double b = -1.0;
+    long sign = -1;
+    double d = 2.0/m;
+
+      if( indx % m == 0 ) {
+        b += 2.0;
+        sign=-sign;
+      }
+      return sign*(d*indx - b);
+}
+
+double calculate_rect(double omega) {
+    unsigned long int m = SAMPLES_PER_S /omega;//(2.0* FREQUENCY);
+    if( indx % m == 0) {
+        RECT_SIGN = -RECT_SIGN;
+    }
+    return RECT_SIGN;
 }
 
 void idle_generator() {
@@ -109,7 +131,7 @@ void swi_call() {
              RMS = AMPLITUDE / sqrt(3);
              break;
          case 2:
-             AVG = AMPLITUDE / ((1/FREQUENCY)/2);
+             AVG = 0;
              RMS = AMPLITUDE;
              break;
      }
