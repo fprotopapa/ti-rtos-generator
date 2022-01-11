@@ -4394,7 +4394,7 @@ ti_sysbios_family_c28_Timer_Object__ ti_sysbios_family_c28_Timer_Object__table__
         },  /* emulationModeInit */
         ti_sysbios_interfaces_ITimer_RunMode_CONTINUOUS,  /* runMode */
         ti_sysbios_interfaces_ITimer_StartMode_AUTO,  /* startMode */
-        (xdc_UInt32)0x1312d00U,  /* period */
+        (xdc_UInt32)0x7d0U,  /* period */
         ti_sysbios_interfaces_ITimer_PeriodType_COUNTS,  /* periodType */
         (xdc_UInt16)0x0U,  /* prescale */
         (xdc_UInt)0x26U,  /* intNum */
@@ -7013,7 +7013,7 @@ ti_sysbios_knl_Semaphore_Object__ ti_sysbios_knl_Semaphore_Object__table__V[1] =
         0,  /* event */
         (xdc_UInt)0x1U,  /* eventId */
         ti_sysbios_knl_Semaphore_Mode_BINARY,  /* mode */
-        (xdc_UInt16)0x1U,  /* count */
+        (xdc_UInt16)0x0U,  /* count */
         {
             {
                 ((ti_sysbios_knl_Queue_Elem*)((void*)&ti_sysbios_knl_Semaphore_Object__table__V[0].Object_field_pendQ.elem)),  /* next */

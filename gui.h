@@ -20,7 +20,9 @@ struct gui_controls_t
 
 struct gui_indicators_t
 {
-    char *display;
+    double graph;
+    double rms;
+    double avg;
 };
 
 struct gui_t
