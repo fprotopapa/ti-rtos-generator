@@ -42,10 +42,10 @@ PAGE 0 :  /* Program Memory */
     D01SARAM   : origin = 0x00B000, length = 0x001000
 
     /* Flash boot address */
-    BEGIN   : origin = 0x080000, length = 0x000002
+    BEGIN   : origin = 0x080000, length = 0x000004
 
     /* Flash sectors */
-    FLASHA  : origin = 0x080002, length = 0x001FFE  /* on-chip Flash */
+    FLASHA  : origin = 0x080004, length = 0x001FFC  /* on-chip Flash */
     FLASHB  : origin = 0x082000, length = 0x002000  /* on-chip Flash */
     FLASHC  : origin = 0x084000, length = 0x002000  /* on-chip Flash */
     FLASHD  : origin = 0x086000, length = 0x002000  /* on-chip Flash */

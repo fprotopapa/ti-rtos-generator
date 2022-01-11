@@ -1,0 +1,1 @@
+"./F2837xS_CodeStartBranch.obj" "./F2837xS_CpuTimers.obj" "./F2837xS_GlobalVariableDefs.obj" "./F2837xS_Gpio.obj" "./F2837xS_SysCtrl.obj" "./F2837xS_usDelay.obj" "./gui.obj" "./main.obj" "../F2837xS_Headers_BIOS.cmd" "../TMS320F28377S.cmd" -l"configPkg/linker.cmd" -llibc.a 
