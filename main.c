@@ -22,8 +22,8 @@ double AMPLITUDE = 0;
 double FREQUENCY = 0;
 int SHAPE = 0;
 int RECT_CYCLE = 0;
-double RMS = 0;
-double AVG = 0;
+long double RMS = 0;
+long double AVG = 0;
 int RECT_SIGN = 1;
 // Set time interval and samples per second
 double TIM_INTV = 0.00001; // in second
@@ -37,8 +37,11 @@ void timer_isr();
 void idle_generator();
 void swi_call();
 void calculate_samples(double omega, double delta_time);
-double calculate_triangle();
 double calculate_rect(double omega);
+double calculate_triangle(double omega, double delta_time);
+double calculate_avg(int chg_sign_indx);
+double calculate_rms(int chg_sign_indx);
+
 /*
  *  ======== main ========
  */
@@ -74,34 +77,29 @@ void timer_isr() {
 }
 // https://www.exstrom.com/siggen/prog/square.c
 // https://en.wikipedia.org/wiki/Triangle_wave
+
 void calculate_samples(double omega, double delta_time) {
     switch (SHAPE) {
         case 0:
             arr_table[indx] = sin(omega * indx * delta_time) * AMPLITUDE;
             break;
         case 1:
-            arr_table[indx] = asin(sin(omega * indx * delta_time)) * AMPLITUDE * (2 / M_PI);
+            arr_table[indx] = calculate_triangle(omega, delta_time) * AMPLITUDE * (2 / M_PI);//-asin(cos(omega * indx * delta_time)) * AMPLITUDE * (2 / M_PI);
             break;
         case 2: {
             arr_table[indx] = calculate_rect(omega) * -AMPLITUDE;
             break;
         }
     }
-    //gui.indicator.graph = arr_table[indx];
     indx++;
 }
+//int TRIANGLE_SIGN = 1;
+double SIN_VAL_DIS = 0;
+double calculate_triangle(double omega, double delta_time) {
 
-double calculate_triangle() {
-    unsigned long int m = SAMPLES_PER_S /(2.0* FREQUENCY);
-    double b = -1.0;
-    long sign = -1;
-    double d = 2.0/m;
-
-      if( indx % m == 0 ) {
-        b += 2.0;
-        sign=-sign;
-      }
-      return sign*(d*indx - b);
+    double sin_val = sin(omega * indx * delta_time);
+    SIN_VAL_DIS = sin_val;
+    return asin(sin_val);
 }
 
 double calculate_rect(double omega) {
@@ -119,24 +117,48 @@ void idle_generator() {
     }
 }
 
+int INDEX_FOUND = 0;
 void swi_call() {
-    // cycle det, avg, rms
-    switch (SHAPE) {
-         case 0:
-             AVG = 0;
-             RMS = AMPLITUDE / sqrt(2);
-             break;
-         case 1:
-             AVG = 0.5 * AMPLITUDE;
-             RMS = AMPLITUDE / sqrt(3);
-             break;
-         case 2:
-             AVG = 0;
-             RMS = AMPLITUDE;
-             break;
-     }
+    // Detect one period, calculate AVG and RMS
+
+    int sample = 0;
+    int chg_sign_indx = 0;
+    double prev = arr_table[0];
+    for (sample = 1; sample < (ARR_SIZE - 1); sample++) {
+        if (prev < 0 & arr_table[sample] >= 0) {
+            chg_sign_indx = sample;
+            break;
+        } else {
+            prev = arr_table[sample];
+        }
+    }
+    INDEX_FOUND = chg_sign_indx;
+    if (SHAPE != 1) {
+        RMS = calculate_rms(chg_sign_indx);
+        AVG = calculate_avg(chg_sign_indx);
+    }
+
     gui.indicator.rms = RMS;
     gui.indicator.avg = AVG;
+}
+
+// https://www.electronics-tutorials.ws/accircuits/rms-voltage.html
+double calculate_avg(int chg_sign_indx) {
+    long double sum = 0;
+    int sample = 0;
+    for (sample = 0; sample < chg_sign_indx; sample++) {
+        sum += arr_table[sample];
+    }
+    return (sum / (double)chg_sign_indx);
+}
+
+double calculate_rms(int chg_sign_indx) {
+    long double sum = 0;
+    int sample = 0;
+    for (sample = 0; sample < chg_sign_indx; sample++) {
+        sum += pow(arr_table[sample], 2);
+    }
+    return (sqrt(sum / (double)chg_sign_indx));
 }
 
 void task_call() {
