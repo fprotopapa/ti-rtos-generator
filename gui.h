@@ -20,7 +20,7 @@ struct gui_controls_t
 
 struct gui_indicators_t
 {
-    double graph;
+    double graph[1000];
     double rms;
     double avg;
 };

@@ -24,7 +24,11 @@ void gui_init(struct gui_t *self)
     /*
      * Indicators
      */
-    self->indicator.graph = 0;
+    int sample = 0;
+    for (sample = 0; sample < 1000; sample++) {
+        self->indicator.graph[sample] = 0;
+    }
+
     self->indicator.rms = 0.0;
     self->indicator.avg = 0.0;
 }
