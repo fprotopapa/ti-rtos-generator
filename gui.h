@@ -37,5 +37,8 @@ extern struct gui_t gui;
  * Initialize GUI
  */
 void gui_init(struct gui_t *self);
-
+/*
+ * Clear graph
+ */
+void clear_graph(struct gui_t *self);
 #endif /* GUI_H_ */

@@ -32,3 +32,10 @@ void gui_init(struct gui_t *self)
     self->indicator.rms = 0.0;
     self->indicator.avg = 0.0;
 }
+
+void clear_graph(struct gui_t *self) {
+    int sample = 0;
+    for (sample = 0; sample < 1000; sample++) {
+        self->indicator.graph[sample] = 0;
+    }
+}

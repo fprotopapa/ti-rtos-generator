@@ -38,7 +38,7 @@ unsigned long TICK = 0;
  * 10 us
  */
 double TIM_INTV = 0.00001; // in second
-long int SAMPLES_PER_S = 100000;  // samples per second
+long int SAMPLE_RATE = 100000;  // samples per second
 /*
  * Declaration
  */
@@ -81,7 +81,7 @@ void timer_isr() {
         INDX = 0;
     } else if (INDX < ARR_SIZE) {
         double omega = 2.0 * M_PI * FREQUENCY;
-        double delta_time = 1.0 / SAMPLES_PER_S;
+        double delta_time = 1.0 / SAMPLE_RATE;
         calculate_samples(omega, delta_time);
     }
 }
@@ -101,14 +101,11 @@ void task_call() {
     // refresh graph
     while (1) {
         Semaphore_pend(taskGen, BIOS_WAIT_FOREVER);
-
-        int sample = 0;
-        for (sample = 0; sample < ARR_SIZE; sample++) {
-            if ((sample < INDX_START) || (sample > INDX_END)) {
-                gui.indicator.graph[sample] = 0;
-            } else {
-                gui.indicator.graph[sample] = arr_table[sample];
-            }
+        clear_graph(&gui);
+        int smp = 0;
+        int smp_fig = 0;
+        for (smp = INDX_END, smp_fig = 0; smp > INDX_START; smp--, smp_fig++) {
+            gui.indicator.graph[smp_fig] = arr_table[smp];
         }
     }
 }
@@ -139,7 +136,7 @@ void calculate_samples(double omega, double delta_time) {
             arr_table[INDX] = sin(omega * TICK * delta_time) * AMPLITUDE;
             break;
         case 1:
-            arr_table[INDX] = calculate_triangle(omega, delta_time) * AMPLITUDE;
+            arr_table[INDX] = AMPLITUDE * calculate_triangle(omega, delta_time);
             break;
         case 2: {
             arr_table[INDX] = calculate_rect(omega, delta_time) * AMPLITUDE;
@@ -151,13 +148,12 @@ void calculate_samples(double omega, double delta_time) {
 /*
  * Generate Triangle
  */
-double VAL = 0;
-int counter_rise = 0;
-int counter_fall = 0;
 double calculate_triangle(double omega, double delta_time) {
-    double period = (int)(SAMPLES_PER_S / omega) + 1.0;
+    double period = (int)((1 / omega) / delta_time) + 1.0;
     double x = fabs(2.0*((TICK/period) - floor((TICK/period) + 0.5)));
     return (2.0 * x) - 1.0;
+//    double x = fabs(fmod((fmod((TICK - (period / 4)), period) + period), period) - (period / 2));//2.0*((TICK/period) - floor((TICK/period) + 0.5)));
+//    return (4.0 / period) * x;
 }
 /*
  * Generate Rectangle
