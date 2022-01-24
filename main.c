@@ -1,6 +1,9 @@
 /*
  *  ======== main.c ========
- *  Todo:
+ *
+ *  f_nyq = 0.5 * f_sample = 50kHz
+ *  f_smp = 1/10us = 100kHz
+ *
  */
 
 #include <xdc/std.h>
@@ -101,11 +104,18 @@ void task_call() {
     // refresh graph
     while (1) {
         Semaphore_pend(taskGen, BIOS_WAIT_FOREVER);
-        clear_graph(&gui);
+        int indx = INDX;
+        //clear_graph(&gui);
         int smp = 0;
-        int smp_fig = 0;
-        for (smp = INDX_END, smp_fig = 0; smp > INDX_START; smp--, smp_fig++) {
-            gui.indicator.graph[smp_fig] = arr_table[smp];
+        int smp_indx = 0;
+        int sw_pos = ARR_SIZE - indx;
+        for (smp = 0; smp < ARR_SIZE; smp++) {
+            if (smp < indx) {
+                gui.indicator.graph[sw_pos + smp] = arr_table[smp];
+            } else {
+                gui.indicator.graph[smp_indx] = arr_table[smp];
+                smp_indx++;
+            }
         }
     }
 }
@@ -154,6 +164,8 @@ double calculate_triangle(double omega, double delta_time) {
     return (2.0 * x) - 1.0;
 //    double x = fabs(fmod((fmod((TICK - (period / 4)), period) + period), period) - (period / 2));//2.0*((TICK/period) - floor((TICK/period) + 0.5)));
 //    return (4.0 / period) * x;
+//    long double sin_val = sin(omega * INDX * delta_time);
+//    return (long double) asin(sin_val) / (M_PI / 2);
 }
 /*
  * Generate Rectangle
@@ -211,6 +223,11 @@ double calculate_avg(int chg_sign_indx_start, int chg_sign_indx_end) {
 }
 /*
  * RMS
+ *
+ * Sine:        A/sqrt(2) -> 1/sqrt(2) = 0.7071
+ * Square:      A -> 1
+ * Triangle:    A/sqrt(3) -> 1/sqrt(3) = 0.57735
+ *
  */
 double calculate_rms(int chg_sign_indx_start, int chg_sign_indx_end) {
     long double sum = 0;
