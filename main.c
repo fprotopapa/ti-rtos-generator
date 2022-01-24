@@ -105,16 +105,17 @@ void task_call() {
     while (1) {
         Semaphore_pend(taskGen, BIOS_WAIT_FOREVER);
         int indx = INDX;
+        int smp_start = 0;
         //clear_graph(&gui);
         int smp = 0;
-        int smp_indx = 0;
-        int sw_pos = ARR_SIZE - indx;
+        int smp_indx = indx + 1;
         for (smp = 0; smp < ARR_SIZE; smp++) {
-            if (smp < indx) {
-                gui.indicator.graph[sw_pos + smp] = arr_table[smp];
-            } else {
-                gui.indicator.graph[smp_indx] = arr_table[smp];
+            if (smp_indx < ARR_SIZE) {
+                gui.indicator.graph[smp] = arr_table[smp_indx];
                 smp_indx++;
+            } else {
+                gui.indicator.graph[smp] = arr_table[smp_start];
+                smp_start++;
             }
         }
     }
