@@ -1,8 +1,6 @@
 /*
  *  ======== main.c ========
  *
- *  f_nyq = 0.5 * f_sample = 50kHz
- *  f_smp = 1/10us = 100kHz
  *
  */
 
@@ -106,7 +104,6 @@ void task_call() {
         Semaphore_pend(taskGen, BIOS_WAIT_FOREVER);
         int indx = INDX;
         int smp_start = 0;
-        //clear_graph(&gui);
         int smp = 0;
         int smp_indx = indx + 1;
         for (smp = 0; smp < ARR_SIZE; smp++) {
@@ -131,8 +128,9 @@ void swi_call() {
     chg_sign_indx_end = detect_sign_change(arr_table, 0);
     INDX_START = chg_sign_indx_start;
     INDX_END = chg_sign_indx_end;
-    RMS = calculate_rms(chg_sign_indx_start, chg_sign_indx_end);
     AVG = calculate_avg(chg_sign_indx_start, chg_sign_indx_end);
+    RMS = calculate_rms(chg_sign_indx_start, chg_sign_indx_end);
+
 
     gui.indicator.rms = RMS;
     gui.indicator.avg = AVG;
@@ -147,7 +145,7 @@ void calculate_samples(double omega, double delta_time) {
             arr_table[INDX] = sin(omega * TICK * delta_time) * AMPLITUDE;
             break;
         case 1:
-            arr_table[INDX] = AMPLITUDE * calculate_triangle(omega, delta_time);
+            arr_table[INDX] = calculate_triangle(omega, delta_time) * AMPLITUDE;
             break;
         case 2: {
             arr_table[INDX] = calculate_rect(omega, delta_time) * AMPLITUDE;
@@ -160,13 +158,10 @@ void calculate_samples(double omega, double delta_time) {
  * Generate Triangle
  */
 double calculate_triangle(double omega, double delta_time) {
-    double period = (int)((1 / omega) / delta_time) + 1.0;
+    //double period = (int)((1 / omega) / delta_time) + 1.0;
+    double period = (double) SAMPLE_RATE / (double) FREQUENCY;
     double x = fabs(2.0*((TICK/period) - floor((TICK/period) + 0.5)));
     return (2.0 * x) - 1.0;
-//    double x = fabs(fmod((fmod((TICK - (period / 4)), period) + period), period) - (period / 2));//2.0*((TICK/period) - floor((TICK/period) + 0.5)));
-//    return (4.0 / period) * x;
-//    long double sin_val = sin(omega * INDX * delta_time);
-//    return (long double) asin(sin_val) / (M_PI / 2);
 }
 /*
  * Generate Rectangle
@@ -186,11 +181,11 @@ int detect_sign_change(double arr[], int start) {
     int sample = 0;
     if (start) {
         double prev = arr[0];
-        for (sample = 1; sample < (ARR_SIZE - 1); sample++) {
-            if (prev > 0 & arr_table[sample] <= 0) {
+        for (sample = 1; sample < ARR_SIZE; sample++) {
+            if ((prev > 0) & (arr_table[sample] <= 0)) {
                 return sample;
             }
-            else if (prev < 0 & arr[sample] >= 0) {
+            else if ((prev < 0) & (arr[sample] >= 0)) {
                 return sample;
             } else {
                 prev = arr[sample];
@@ -199,10 +194,10 @@ int detect_sign_change(double arr[], int start) {
     } else {
         double prev = arr[ARR_SIZE - 1];
         for (sample = (ARR_SIZE - 2); sample > 0; sample--) {
-            if (prev > 0 & arr_table[sample] <= 0) {
+            if ((prev > 0) & (arr_table[sample] <= 0)) {
                 return sample;
             }
-            else if (prev < 0 & arr[sample] >= 0) {
+            else if ((prev < 0) & (arr[sample] >= 0)) {
                 return sample;
             } else {
                 prev = arr[sample];
@@ -213,14 +208,16 @@ int detect_sign_change(double arr[], int start) {
 }
 /*
  * Average
+ *
+ * Symmetric signal -> AVG ~ 0
  */
 double calculate_avg(int chg_sign_indx_start, int chg_sign_indx_end) {
     long double sum = 0;
     int sample = 0;
-    for (sample = chg_sign_indx_start; sample < chg_sign_indx_end; sample++) {
+    for (sample = chg_sign_indx_start; sample <= chg_sign_indx_end; sample++) {
         sum += arr_table[sample];
     }
-    return (sum / (double)(chg_sign_indx_end - chg_sign_indx_start));
+    return (sum / (long double)(chg_sign_indx_end - chg_sign_indx_start + 1));
 }
 /*
  * RMS
@@ -233,8 +230,8 @@ double calculate_avg(int chg_sign_indx_start, int chg_sign_indx_end) {
 double calculate_rms(int chg_sign_indx_start, int chg_sign_indx_end) {
     long double sum = 0;
     int sample = 0;
-    for (sample = chg_sign_indx_start; sample < chg_sign_indx_end; sample++) {
+    for (sample = chg_sign_indx_start; sample <= chg_sign_indx_end; sample++) {
         sum += pow(arr_table[sample], 2);
     }
-    return (sqrt(sum / (double)(chg_sign_indx_end - chg_sign_indx_start)));
+    return (sqrt(sum / (long double)(chg_sign_indx_end - chg_sign_indx_start + 1)));
 }
