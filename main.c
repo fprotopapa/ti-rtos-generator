@@ -207,7 +207,7 @@ int detect_sign_change(double arr[], int start) {
     return 0;
 }
 /*
- * Average
+ * Average calculated over period
  *
  * Symmetric signal -> AVG ~ 0
  */
@@ -220,7 +220,7 @@ double calculate_avg(int chg_sign_indx_start, int chg_sign_indx_end) {
     return (sum / (long double)(chg_sign_indx_end - chg_sign_indx_start + 1));
 }
 /*
- * RMS
+ * RMS calculated over period
  *
  * Sine:        A/sqrt(2) -> 1/sqrt(2) = 0.7071
  * Square:      A -> 1
