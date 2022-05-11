@@ -182,10 +182,10 @@ int detect_sign_change(double arr[], int start) {
     if (start) {
         double prev = arr[0];
         for (sample = 1; sample < ARR_SIZE; sample++) {
-            if ((prev > 0) & (arr_table[sample] <= 0)) {
+            if ((prev > 0) && (arr_table[sample] <= 0)) {
                 return sample;
             }
-            else if ((prev < 0) & (arr[sample] >= 0)) {
+            else if ((prev < 0) && (arr[sample] >= 0)) {
                 return sample;
             } else {
                 prev = arr[sample];
@@ -194,10 +194,10 @@ int detect_sign_change(double arr[], int start) {
     } else {
         double prev = arr[ARR_SIZE - 1];
         for (sample = (ARR_SIZE - 2); sample > 0; sample--) {
-            if ((prev > 0) & (arr_table[sample] <= 0)) {
+            if ((prev > 0) && (arr_table[sample] <= 0)) {
                 return sample;
             }
-            else if ((prev < 0) & (arr[sample] >= 0)) {
+            else if ((prev < 0) && (arr[sample] >= 0)) {
                 return sample;
             } else {
                 prev = arr[sample];
